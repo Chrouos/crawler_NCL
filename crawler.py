@@ -30,11 +30,14 @@ def save_to_excel(excel_df):
     """
     excel_df.to_excel(OUTPUT_FILE, index=False, engine='openpyxl', sheet_name="研究人才")
     
-def crawl_thesis_info(student_name, school_name):
+def crawl_thesis_info(row_data):
     """
     爬取指定「名稱」的論文資訊。
     """
-
+    
+    student_name = row_data['計畫主持人']
+    school_name = row_data['學校']
+        
     # : 準備 Excel 存擋資料
     temp_dict = clear_excel_dict_template.copy()
     temp_dict['計畫主持人'] = student_name
@@ -118,20 +121,19 @@ def crawl_thesis_info(student_name, school_name):
             cookie, rs, res_post, headers, h1 = reload_cookies(URL, query) # ! reload cookies
             retry = True
             error += 1
-    
+            
+    return temp_dict
     
 def main():
     columns = list(clear_excel_dict_template.keys())
     excel_data = pd.read_excel(FILE_PATH, sheet_name="研究人才") # = 讀取的 Excel Data
     excel_df = pd.DataFrame(columns=columns) # = 要存檔的 Excel Data
     
-    for index, row in excel_data.iterrows():
-        student_name = row['計畫主持人']
-        school_name = row['學校']
-        
-        temp_dict = crawl_thesis_info(student_name, school_name) # = 爬蟲 Action
+    for index, row in excel_data[4:5].iterrows():
+        temp_dict = crawl_thesis_info(row) # = 爬蟲 Action
         temp_df = pd.DataFrame([temp_dict])
         excel_df = pd.concat([excel_df, temp_df], ignore_index=True)
+        
     
     save_to_excel(excel_df)
 
